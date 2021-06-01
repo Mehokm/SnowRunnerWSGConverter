@@ -10,7 +10,7 @@ import (
 func main() {
 	srcFlag := flag.String("src", ".", "The source save directory containing WSG save files")
 	destFlag := flag.String("dest", ".", "The destination directory for converted save files")
-	extFlag := flag.String("ext", "", "File extension to save all converted files with")
+	extFlag := flag.String("ext", "cfg", "File extension to save all converted files with")
 	listOnlyFlag := flag.Bool("list-only", false, "List WSG save file mappings only")
 
 	flag.Parse()

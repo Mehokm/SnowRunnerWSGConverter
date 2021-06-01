@@ -11,7 +11,7 @@ Available options:
 	-dest string
 		The destination directory for converted save files (default ".")
 	-ext string
-		File extension to save all converted files with (default "")
+		File extension to save all converted files with (default "cfg")
 	-list-only
 		List WSG save file mappings only
 	-src string
@@ -27,14 +27,14 @@ Converting files:
 	Found container file: container.13
 	Converting WSG save files..
 
-	Copied: C:/Path/To/Src/2E58A7E153FA42EEA6EB1DFCB7ACBCE8 -> C:/Path/To/Dest/CommonSslSave
-	Copied: C:/Path/To/Src/C2C8F614EECE48C9A42C70C0EBBC653D -> C:/Path/To/Dest/fog_level_us_01_01
-	Copied: C:/Path/To/Src/B688C916B72A4824A6D743BCEAE4BAAC -> C:/Path/To/Dest/achievements
-	Copied: C:/Path/To/Src/35156D76DBF34DFBB4BCE3A2CC7E4638 -> C:/Path/To/Dest/CompleteSave
-	Copied: C:/Path/To/Src/685741B717044FE1973F94E47B40DA21 -> C:/Path/To/Dest/user_settings
-	Copied: C:/Path/To/Src/931363F3147A4D81B86556DD9BD1D140 -> C:/Path/To/Dest/user_social_data
-	Copied: C:/Path/To/Src/4E5442B00C2B4AF8A1F44C04AD92E16C -> C:/Path/To/Dest/user_profile
-	Copied: C:/Path/To/Src/33106F9817A74200817EE7A8DACA8D22 -> C:/Path/To/Dest/sts_level_us_01_01
+	Copied: C:/Path/To/Src/2E58A7E153FA42EEA6EB1DFCB7ACBCE8 -> C:/Path/To/Dest/CommonSslSave.cfg
+	Copied: C:/Path/To/Src/C2C8F614EECE48C9A42C70C0EBBC653D -> C:/Path/To/Dest/fog_level_us_01_01.cfg
+	Copied: C:/Path/To/Src/B688C916B72A4824A6D743BCEAE4BAAC -> C:/Path/To/Dest/achievements.cfg
+	Copied: C:/Path/To/Src/35156D76DBF34DFBB4BCE3A2CC7E4638 -> C:/Path/To/Dest/CompleteSave.cfg
+	Copied: C:/Path/To/Src/685741B717044FE1973F94E47B40DA21 -> C:/Path/To/Dest/user_settings.cfg
+	Copied: C:/Path/To/Src/931363F3147A4D81B86556DD9BD1D140 -> C:/Path/To/Dest/user_social_data.cfg
+	Copied: C:/Path/To/Src/4E5442B00C2B4AF8A1F44C04AD92E16C -> C:/Path/To/Dest/user_profile.cfg
+	Copied: C:/Path/To/Src/33106F9817A74200817EE7A8DACA8D22 -> C:/Path/To/Dest/sts_level_us_01_01.cfg
 	
 ---
 
