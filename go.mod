@@ -1,3 +1,3 @@
-module snowrunner_wsg_converter
+module SnowRunnerWSGConverter
 
 go 1.16

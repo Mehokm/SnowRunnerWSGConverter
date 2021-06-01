@@ -1,7 +1,8 @@
-package main
+package wsg
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,76 +12,72 @@ import (
 	"sync"
 )
 
-const containerPrefix = "container."
-const chunkLen = 160
-const metadataLen = 8
-
 type WsgFileInfo struct {
 	realFilename []byte
 	guid         []byte
 }
 
-func main() {
-	// change this to flags maybe
-	if len(os.Args) < 3 {
-		fmt.Println("you must provide a source and destination directories as arguments")
-		return
-	}
+const containerPrefix = "container."
+const chunkLen = 160
+const metadataLen = 8
 
-	// add isDir checks for safety
-	source := os.Args[1]
+func Convert(sourceDir, destDir, ext string) error {
+	return run(sourceDir, destDir, ext, false)
+}
 
-	sourceIsDir, err := isDir(source)
+func ListMapping(sourceDir, destDir string) error {
+	return run(sourceDir, destDir, "", true)
+}
 
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if !sourceIsDir {
-		fmt.Println("source is not a directory.  Source must be a directory.")
-		return
-	}
-
-	dest := os.Args[2]
-
-	destIsDir, err := isDir(dest)
+func run(sourceDir, destDir, ext string, listOnly bool) error {
+	files, err := ioutil.ReadDir(sourceDir)
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
-	if !destIsDir {
-		fmt.Println("destination is not a directory.  Destination must be a directory.")
-		return
-	}
-
-	files, err := ioutil.ReadDir(source)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
+	// find the container.XXX file to extract the proper filenames for conversion
 	containerFilename := findContainerFilename(files)
 
 	if containerFilename == "" {
-		fmt.Println("cannot find container file.")
-		return
+		return errors.New("wsg.go: cannot find container file")
+	} else {
+		fmt.Println("Found container file: " + containerFilename)
 	}
 
-	data, err := ioutil.ReadFile(source + "/" + containerFilename)
+	data, err := ioutil.ReadFile(sourceDir + "/" + containerFilename)
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
+	// parse number of files from file metadata
 	numFiles := binary.LittleEndian.Uint16(data[4:metadataLen])
 
-	// create WaitGroup for managing concurrent file operations
+	fileInfoCh := make(chan WsgFileInfo)
+
 	wg := sync.WaitGroup{}
+
+	go func() {
+		if listOnly {
+			fmt.Println("WSG save file mapping:")
+			fmt.Println()
+
+			for fileInfo := range fileInfoCh {
+				fmt.Println(string(fileInfo.realFilename) + " -> " + fmt.Sprintf("%X", fileInfo.guid))
+			}
+		} else {
+			fmt.Println("Converting WSG save files..")
+			fmt.Println()
+
+			for fileInfo := range fileInfoCh {
+				wg.Add(1)
+
+				go convertFile(&wg, fileInfo, sourceDir, destDir, ext)
+			}
+
+		}
+	}()
 
 	i := 0
 	start := metadataLen
@@ -104,12 +101,10 @@ func main() {
 			guid:         decodedGuid,
 		}
 
-		wg.Add(1)
+		// put files info on channel for concurrent processing
+		fileInfoCh <- fileInfo
 
-		// concurrently convert WSG save file to proper save file
-		go convertFile(&wg, fileInfo, source, dest)
-
-		// update for following chunks
+		// update for next chunk
 		start = end
 		end = start + chunkLen
 
@@ -120,20 +115,23 @@ func main() {
 		i++
 	}
 
+	close(fileInfoCh)
+
 	wg.Wait()
+
+	return nil
 }
 
-func convertFile(wg *sync.WaitGroup, fileInfo WsgFileInfo, source, dest string) {
-	guidFilepath := source + "/" + fmt.Sprintf("%X", fileInfo.guid)
-	realFilepath := dest + "/" + string(fileInfo.realFilename)
+func convertFile(wg *sync.WaitGroup, fileInfo WsgFileInfo, sourceDir, destDir, ext string) {
+	defer wg.Done()
+
+	guidFilepath := sourceDir + "/" + fmt.Sprintf("%X", fileInfo.guid)
+	realFilepath := destDir + "/" + string(fileInfo.realFilename) + "." + ext
 
 	guidFile, err := os.Open(guidFilepath)
 
 	if err != nil {
 		fmt.Println(err)
-
-		wg.Done()
-
 		return
 	}
 
@@ -141,9 +139,6 @@ func convertFile(wg *sync.WaitGroup, fileInfo WsgFileInfo, source, dest string) 
 
 	if err != nil {
 		fmt.Println(err)
-
-		wg.Done()
-
 		return
 	}
 
@@ -151,27 +146,13 @@ func convertFile(wg *sync.WaitGroup, fileInfo WsgFileInfo, source, dest string) 
 
 	if err != nil {
 		fmt.Println(err)
-
-		wg.Done()
-
 		return
 	}
 
 	guidFile.Close()
 	realFile.Close()
 
-	fmt.Println("copied: " + guidFilepath + " -> " + realFilepath)
-
-	wg.Done()
-}
-
-func isDir(path string) (bool, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-
-	return info.IsDir(), err
+	fmt.Println("Copied: " + guidFilepath + " -> " + realFilepath)
 }
 
 func findContainerFilename(files []fs.FileInfo) string {
