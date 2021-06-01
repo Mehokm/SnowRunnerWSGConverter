@@ -22,6 +22,9 @@ const chunkLen = 160
 const metadataLen = 8
 
 func Convert(sourceDir, destDir, ext string) error {
+	if ext != "" {
+		ext = "." + ext
+	}
 	return run(sourceDir, destDir, ext, false)
 }
 
@@ -126,7 +129,7 @@ func convertFile(wg *sync.WaitGroup, fileInfo WsgFileInfo, sourceDir, destDir, e
 	defer wg.Done()
 
 	guidFilepath := sourceDir + "/" + fmt.Sprintf("%X", fileInfo.guid)
-	realFilepath := destDir + "/" + string(fileInfo.realFilename) + "." + ext
+	realFilepath := destDir + "/" + string(fileInfo.realFilename) + ext
 
 	guidFile, err := os.Open(guidFilepath)
 
